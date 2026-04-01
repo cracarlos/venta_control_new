@@ -1,0 +1,81 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# -------------------- Frontend React
+# dependencies
+/node_modules
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# production
+/build
+/dist
+dist/
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+# Electron
+/release
+release/
+
+# ------------------ Backend Django --------------------
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Archivos de base de datos
+*.sqlite3
+
+# Python Bytecode
+*.pyc
+__pycache__/
+
+# Archivos de configuración local y sensibles
+.env
+.flaskenv
+settings_local.py
+local_settings.py
+secrets.py
+
+# Archivos estáticos y de medios generados
+/static/
+/staticfiles/
+/mediafiles/
+
+# Archivos de IDE y editor (ejemplos comunes)
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+
+# Archivos de logs
+*.log
+
+/media
+media/
