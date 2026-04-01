@@ -38,18 +38,23 @@ class MyTokenSerializer(TokenObtainPairSerializer):
 
             data['password_update'] = self.user.password_update
 
-            groups = self.user.groups.all()
-            if groups.exists():
-                data['group_name'] = groups.first().name
-                data['group_id'] = groups.first().id
-                permissions = self.user.user_permissions.all().values_list('codename', flat=True)
-                if not permissions:
-                    permissions = groups.first().permissions.all().values_list('codename', flat=True)
-                data['permissions'] = list(permissions)
-            else:
-                data['group_name'] = ''
+            if self.user.is_superuser:
+                data['group_name'] = 'Super Administrador'
                 data['group_id'] = 0
-                data['permissions'] = []
+                data['permissions'] = ['superuser']
+            else:
+                groups = self.user.groups.all()
+                if groups.exists():
+                    data['group_name'] = groups.first().name
+                    data['group_id'] = groups.first().id
+                    permissions = self.user.user_permissions.all().values_list('codename', flat=True)
+                    if not permissions:
+                        permissions = groups.first().permissions.all().values_list('codename', flat=True)
+                    data['permissions'] = list(permissions) if permissions else ['superuser']
+                else:
+                    data['group_name'] = ''
+                    data['group_id'] = 0
+                    data['permissions'] = []
 
             model.usuario = self.user.email
             model.status = "exitoso"

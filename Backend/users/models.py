@@ -38,3 +38,8 @@ class User( AbstractBaseUser, PermissionsMixin ):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+    class Meta:
+        permissions = [
+            ("dashboard", "Acceder al dashboard"),
+        ]

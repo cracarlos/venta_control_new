@@ -36,14 +36,18 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
             <SidebarMenu>
-                <SidebarMenuItem key="dashboard">
+              {
+                permissions.includes("superuser") || permissions.includes("dashboard") ? 
+                  <SidebarMenuItem key="dashboard">
                     <SidebarMenuButton asChild>
                       <Link to={"/dashboard"} >
                         <LayoutDashboard />
                         Dashboard
                       </Link> 
                     </SidebarMenuButton>
-                </SidebarMenuItem>
+                  </SidebarMenuItem>
+                : null
+              }
             </SidebarMenu>
         </SidebarGroup>
         {
