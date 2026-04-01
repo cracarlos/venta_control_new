@@ -10,10 +10,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { UserAvatarInfo} from '@/components/UserAvatarInfo';
+import { useAuthStore } from "@/hooks/useAuthStore";
 import { Barcode, DollarSign, LayoutDashboard, NotebookTabs, Receipt, Shield, Users } from "lucide-react";
 import { Link } from "react-router";
 
 export function AppSidebar() {
+  const { permissions } = useAuthStore();
   return (
     <Sidebar>
       <SidebarHeader>
@@ -44,61 +46,99 @@ export function AppSidebar() {
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
-        <SidebarGroup>
-            <SidebarGroupLabel>Ventas</SidebarGroupLabel>
-            <SidebarMenu>
-                <SidebarMenuItem key="ventas">
-                    <SidebarMenuButton asChild>
-                        <Link to={"/pos"}>
-                            <DollarSign />
-                            <span>Caja</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem key="ventas-listado">
-                    <SidebarMenuButton asChild>
-                        <Link to={"/sales"}>
-                            <Receipt />
-                            <span>Ventas</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarGroup>
-        <SidebarGroup>
-            <SidebarGroupLabel>Inventario</SidebarGroupLabel>
-            <SidebarMenu>
-                <SidebarMenuItem key="inventarios-produtos">
-                    <SidebarMenuButton asChild>
-                        <Link to={"/products"}>
-                          <Barcode />
-                          <span>Productos</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarGroup>
-        <SidebarGroup>
-            <SidebarGroupLabel>Usuarios</SidebarGroupLabel>
-            <SidebarMenu>
-                <SidebarMenuItem key="user-listado">
-                    <SidebarMenuButton asChild>
-                      <Link to={"/users"} >
-                        <Users />
-                        <span>Listado</span>
-                      </Link> 
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem key="roles-listado">
-                    <SidebarMenuButton asChild>
-                      <Link to={"/roles"} >
-                        <Shield />
-                        <span>Roles</span>
-                      </Link> 
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarGroup>
+        {
+          permissions.includes("view_sales") || permissions.includes("view_sale_products") || permissions.includes("superuser") ? (
+            <SidebarGroup>
+                <SidebarGroupLabel>Ventas</SidebarGroupLabel>
+                <SidebarMenu>
+                  {
+                    permissions.includes("superuser") || permissions.includes("view_sale_products") ? 
+                      <SidebarMenuItem key="ventas">
+                            <SidebarMenuButton asChild>
+                                <Link to={"/pos"}>
+                                    <DollarSign />
+                                    <span>Caja</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    : null
+                  }
+                  {
+                    permissions.includes("superuser") || permissions.includes("view_sales") ? 
+                      <SidebarMenuItem key="ventas-listado">
+                          <SidebarMenuButton asChild>
+                              <Link to={"/sales"}>
+                                  <Receipt />
+                                  <span>Ventas</span>
+                              </Link>
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    : null
+                  }
+                 
+                </SidebarMenu>
+            </SidebarGroup>
+          ) : null
+        }
+
+
+
+
+        {
+          permissions.includes("view_products") || permissions.includes("superuser") ? (
+            <SidebarGroup>
+                <SidebarGroupLabel>Inventario</SidebarGroupLabel>
+                <SidebarMenu>
+                  {
+                    permissions.includes("superuser") || permissions.includes("view_products") ? 
+                      <SidebarMenuItem key="inventarios-produtos">
+                          <SidebarMenuButton asChild>
+                              <Link to={"/products"}>
+                                <Barcode />
+                                <span>Productos</span>
+                              </Link>
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    : null
+                  }
+                </SidebarMenu>
+            </SidebarGroup>
+          ) : null
+        }
+        
+        {
+          permissions.includes("view_users") || permissions.includes("superuser") ? (
+            <SidebarGroup>
+                <SidebarGroupLabel>Usuarios</SidebarGroupLabel>
+                <SidebarMenu>
+                  {
+                    permissions.includes("superuser") || permissions.includes("view_users") ? 
+                      <SidebarMenuItem key="user-listado">
+                        <SidebarMenuButton asChild>
+                          <Link to={"/users"} >
+                            <Users />
+                            <span>Listado</span>
+                          </Link> 
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    : null
+                  }
+                  {
+                    permissions.includes("superuser") || permissions.includes("view_group") ? 
+                      <SidebarMenuItem key="roles-listado">
+                          <SidebarMenuButton asChild>
+                            <Link to={"/roles"} >
+                              <Shield />
+                              <span>Roles</span>
+                            </Link> 
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    : null
+                  }
+                </SidebarMenu>
+            </SidebarGroup>
+          ) : null
+        }
         <SidebarGroup />
       </SidebarContent>
       <SidebarFooter>
