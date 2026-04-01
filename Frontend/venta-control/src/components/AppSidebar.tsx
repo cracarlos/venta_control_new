@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { UserAvatarInfo} from '@/components/UserAvatarInfo';
-import { Barcode, DollarSign, LayoutDashboard, NotebookTabs, Receipt, Users } from "lucide-react";
+import { Barcode, DollarSign, LayoutDashboard, NotebookTabs, Receipt, Shield, Users } from "lucide-react";
 import { Link } from "react-router";
 
 export function AppSidebar() {
@@ -85,7 +85,15 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <Link to={"/users"} >
                         <Users />
-                        Listado
+                        <span>Listado</span>
+                      </Link> 
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem key="roles-listado">
+                    <SidebarMenuButton asChild>
+                      <Link to={"/roles"} >
+                        <Shield />
+                        <span>Roles</span>
                       </Link> 
                     </SidebarMenuButton>
                 </SidebarMenuItem>
