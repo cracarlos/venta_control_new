@@ -7,7 +7,7 @@ import { postPasswordUpdate } from "@/services/usersServices";
 
 export const useAuthStore = () => {
 
-    const { fullName, email, isAuthenticated, passwordUpdate } = useAppSelector((state) => state.auth); 
+    const { fullName, email, isAuthenticated, passwordUpdate, groupName, groupId, permissions } = useAppSelector((state) => state.auth); 
     
     const dispatch = useAppDispatch();
     
@@ -24,7 +24,10 @@ export const useAuthStore = () => {
                     email: resp.email,
                     userId: resp.user_id,
                     fullName: resp.full_name,
-                    passwordUpdate: resp.password_update
+                    passwordUpdate: resp.password_update,
+                    groupName: resp.group_name || '',
+                    groupId: resp.group_id || 0,
+                    permissions: resp.permissions || []
                 })
             )
 
@@ -52,7 +55,6 @@ export const useAuthStore = () => {
         } catch (error: any) {
 
             console.log(error);
-            // Revisar
             localStorage.removeItem("token");
             localStorage.removeItem("refresh");
             dispatch(logoutSlice());
@@ -87,5 +89,8 @@ export const useAuthStore = () => {
     fullName,
     isAuthenticated,
     passwordUpdate,
+    groupName,
+    groupId,
+    permissions,
   }
 }

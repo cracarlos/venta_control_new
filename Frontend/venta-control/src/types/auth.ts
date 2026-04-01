@@ -10,4 +10,7 @@ export interface AuthApi {
     email: string,
     full_name: string,
     password_update: boolean,
+    group_name: string,
+    group_id: number,
+    permissions: string[],
 }

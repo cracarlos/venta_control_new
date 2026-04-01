@@ -20,8 +20,6 @@ class MyTokenSerializer(TokenObtainPairSerializer):
             data = super().validate(attrs)
             model = LoginHistory()
 
-            # Aquí agregar datos adicionales al payload de la respuesta JSON
-            # que no necesariamente van en el token, pero que se quiere enviar al cliente
             data['user_id'] = self.user.id
             data['ok'] = True
             data['email'] = f"{self.user.email}"
@@ -38,9 +36,20 @@ class MyTokenSerializer(TokenObtainPairSerializer):
             if self.user.first_name and self.user.middle_name == '' and self.user.last_name and self.user.second_last_name == '':
                 data['full_name'] = f"{self.user.first_name} {self.user.last_name}"
 
-           
-            
             data['password_update'] = self.user.password_update
+
+            groups = self.user.groups.all()
+            if groups.exists():
+                data['group_name'] = groups.first().name
+                data['group_id'] = groups.first().id
+                permissions = self.user.user_permissions.all().values_list('codename', flat=True)
+                if not permissions:
+                    permissions = groups.first().permissions.all().values_list('codename', flat=True)
+                data['permissions'] = list(permissions)
+            else:
+                data['group_name'] = ''
+                data['group_id'] = 0
+                data['permissions'] = []
 
             model.usuario = self.user.email
             model.status = "exitoso"

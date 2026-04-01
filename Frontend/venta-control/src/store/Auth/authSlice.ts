@@ -1,22 +1,26 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../store'
 
-// Define a type for the slice state
 interface AuthState {
     isAuthenticated: boolean,
     email: string,
     userId: number,
     fullName: string,
-    passwordUpdate: boolean
+    passwordUpdate: boolean,
+    groupName: string,
+    groupId: number,
+    permissions: string[]
 }
 
-// Define the initial state using that type
 const initialState: AuthState = {
     isAuthenticated: false,
     email:"",
     userId: 0,
     fullName:"",
     passwordUpdate: false,
+    groupName: "",
+    groupId: 0,
+    permissions: []
 }
 
 export const AuthSlice = createSlice({
@@ -29,6 +33,9 @@ export const AuthSlice = createSlice({
             state.userId = payload.userId
             state.fullName = payload.fullName
             state.passwordUpdate = payload.passwordUpdate
+            state.groupName = payload.groupName
+            state.groupId = payload.groupId
+            state.permissions = payload.permissions
         },
         logoutSlice: (state) => {
             state.isAuthenticated = false
@@ -36,6 +43,9 @@ export const AuthSlice = createSlice({
             state.userId = 0
             state.fullName = ""
             state.passwordUpdate = false
+            state.groupName = ""
+            state.groupId = 0
+            state.permissions = []
         },
         passwordUpdateSlice: (state, { payload }: PayloadAction<boolean>) => {
             state.passwordUpdate = payload
@@ -45,7 +55,4 @@ export const AuthSlice = createSlice({
 
 export const { loginSlice, logoutSlice, passwordUpdateSlice } = AuthSlice.actions
 
-// Other code such as selectors can use the imported `RootState` type
 export const selectAuth = (state: RootState) => state.auth
-
-export default AuthSlice.reducer
