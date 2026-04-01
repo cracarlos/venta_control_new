@@ -39,9 +39,13 @@ export const Auth = () => {
     console.log(resp)
 
     if (resp.ok == true) {
-      
-      
-      navigate("/dashboard");
+      if (resp.permissions.includes("superuser")) return navigate("/dashboard");
+      if (resp.permissions.includes("dashboard")) return navigate("/dashboard");
+      if (resp.permissions.includes("view_sale_products")) return navigate("/pos");
+      if (resp.permissions.includes("view_sales")) return navigate("/sales");
+      if (resp.permissions.includes("view_products")) return navigate("/products");
+      if (resp.permissions.includes("view_user")) return navigate("/users");
+      if (resp.permissions.includes("view_group")) return navigate("/roles");
     } else {
       setIsError(false);
       setMessageError(resp.message);

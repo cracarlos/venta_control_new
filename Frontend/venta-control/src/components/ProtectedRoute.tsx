@@ -1,37 +1,68 @@
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { Navigate, Outlet, useLocation } from "react-router";
 
-// 1. Definimos una interfaz sencilla para el estado de autenticación
 interface AuthState {
   isAuthenticated: boolean;
   passwordUpdate: boolean;
-  permissions: string[]; 
+  permissions: string[];
 }
+
+const ROUTE_PERMISSIONS: Record<string, string[]> = {
+  "/dashboard": ["superuser", "dashboard"],
+  "/pos": ["superuser", "view_sale_products", "add_sale"],
+  "/sales": ["superuser", "view_sales", "add_sale"],
+  "/products": ["superuser", "view_products", "add_product", "change_product", "delete_product"],
+  "/users": ["superuser", "view_user", "add_user", "change_user", "delete_user"],
+  "/roles": ["superuser", "view_group", "add_group", "change_group", "delete_group"],
+};
 
 export const ProtectedRoute = () => {
     const location = useLocation();
     
     const { isAuthenticated, passwordUpdate, permissions }: AuthState = useAuthStore();
 
-    // si está autenticado y intenta acceder a /
     if (isAuthenticated && location.pathname === "/") {
-        console.log("pasando")
         return <Navigate to="/dashboard" state={{ from: location }} replace />;
     }
-    
-    // Si el usuario no ha actualizado su contraseña
-    if (isAuthenticated && !passwordUpdate && location.pathname !== "/password-update" ) return <Navigate to="/password-update" replace />
-    // Si el usuario está autenticado y ya actualizó su contraseña
-    if (isAuthenticated && passwordUpdate && location.pathname === "/password-update" ) {
-        if (permissions.includes("dashboard") || permissions.includes("view_sales")){
-            console.log("pasando2")
-            return <Navigate to="/pos" state={{ from: location }} replace />;
-        }
-        // return <Navigate to="/dashboard" replace />
 
-    } 
-    // if (isAuthenticated && passwordUpdate && location.pathname === "/password-update" ) return <Navigate to="/dashboard" replace />
+    if (isAuthenticated && !passwordUpdate && location.pathname !== "/password-update" ) {
+        return <Navigate to="/password-update" replace />
+    }
+
+    if (isAuthenticated && passwordUpdate && location.pathname === "/password-update") {
+        const redirect = getFirstAllowedRoute(permissions);
+        return <Navigate to={redirect} replace />
+    }
+
+    if (isAuthenticated && passwordUpdate && location.pathname !== "/password-update") {
+        const allowedRoutes = getAllowedRoutes(permissions);
+        if (!allowedRoutes.includes(location.pathname)) {
+            const redirect = getFirstAllowedRoute(permissions);
+            return <Navigate to={redirect} replace />
+        }
+    }
     
     return <Outlet />;
 
 };
+
+function getFirstAllowedRoute(permissions: string[]): string {
+    const routes = Object.keys(ROUTE_PERMISSIONS);
+    for (const route of routes) {
+        const routePerms = ROUTE_PERMISSIONS[route];
+        if (routePerms.some(p => permissions.includes(p))) {
+            return route;
+        }
+    }
+    return "/dashboard";
+}
+
+function getAllowedRoutes(permissions: string[]): string[] {
+    const allowed: string[] = [];
+    for (const [route, routePerms] of Object.entries(ROUTE_PERMISSIONS)) {
+        if (routePerms.some(p => permissions.includes(p))) {
+            allowed.push(route);
+        }
+    }
+    return allowed;
+}
