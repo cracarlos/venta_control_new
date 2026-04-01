@@ -135,10 +135,10 @@ class SalesManagerApiVIew(APIView):
                 week_start = local_now - timedelta(days=local_now.weekday())
                 sales = sales.filter(created_at__date__gte=week_start.date())
             elif period == 'month':
-                month_start = local_now.replace(day=1)
+                month_start = local_now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
                 sales = sales.filter(created_at__date__gte=month_start.date())
-        elif start_date and end_date:
-            sales = sales.filter(created_at__date__range=[start_date, end_date])
+            elif start_date and end_date:
+                sales = sales.filter(created_at__date__range=[start_date, end_date])
         
         return sales
 
@@ -213,7 +213,7 @@ class DashboardStatsView(APIView):
         today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
         
         week_start = local_now - timedelta(days=local_now.weekday())
-        month_start = local_now.replace(day=1)
+        month_start = local_now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
         total_today = Sales.objects.filter(created_at__date=today_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
         total_week = Sales.objects.filter(created_at__date__gte=week_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
