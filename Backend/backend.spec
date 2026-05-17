@@ -10,7 +10,7 @@ a = Analysis(
     ['backend.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('venta_control/.env', 'venta_control')],
     hiddenimports=[
         # Django
         'django',
