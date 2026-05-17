@@ -253,7 +253,19 @@ function stopBackend() {
     if (backendProcess) {
         console.log('[Electron] Stopping backend...')
         if (process.platform === 'win32') {
-            spawn('taskkill', ['/pid', String(backendProcess.pid), '/f', '/t'])
+            try {
+                require('child_process').execSync(
+                    `taskkill /pid ${backendProcess.pid} /f /t`,
+                    { timeout: 5000 }
+                )
+            } catch (e) {
+                try {
+                    require('child_process').execSync(
+                        'taskkill /f /im venta-control-backend.exe',
+                        { timeout: 5000 }
+                    )
+                } catch (_) {}
+            }
         } else {
             backendProcess.kill('SIGTERM')
             setTimeout(() => {
