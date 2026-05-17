@@ -7,30 +7,33 @@ import {
 } from "@/components/ui/card"
 import { DollarSign, ShoppingCart, Package } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { useTasa } from '@/hooks/useTasa'
 
 interface TopProduct {
     product__product_name: string
     total_vendido: number
-    total_recaudado: number
+    total_recaudado_usd: number
+    total_recaudado_bs: number
 }
 
 interface DashboardStats {
-    total_today: number
-    total_week: number
-    total_month: number
-    total_all: number
+    total_today_usd: number
+    total_week_usd: number
+    total_month_usd: number
+    total_all_usd: number
+    total_today_bs: number
+    total_week_bs: number
+    total_month_bs: number
+    total_all_bs: number
     count_today: number
     count_week: number
     count_month: number
     top_products: TopProduct[]
-    last_7_days: { date: string; total: number }[]
+    last_7_days: { date: string; total_usd: number; total_bs: number }[]
 }
 
 export function DashboardCards() {
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [loading, setLoading] = useState(true)
-    const { formatPrice } = useTasa()
 
     useEffect(() => {
         loadStats()
@@ -66,11 +69,11 @@ export function DashboardCards() {
                     <CardHeader className="pb-1 md:pb-2">
                         <CardDescription className="text-xs md:text-sm">Ventas Hoy</CardDescription>
                         <CardTitle className="text-lg md:text-2xl font-semibold tabular-nums text-green-600">
-                            ${formatPrice(stats?.total_today || 0).usd}
+                            ${stats?.total_today_usd?.toFixed(2) || '0.00'}
+                            <span className="text-xs ml-1">({stats?.total_today_bs?.toFixed(2) || '0.00'} Bs)</span>
                         </CardTitle>
                     </CardHeader>
                     <div className="px-3 md:px-6 py-1 md:py-2 flex flex-col gap-0.5 md:gap-1 text-xs md:text-sm text-muted-foreground">
-                        <span className="text-xs">{formatPrice(stats?.total_today || 0).bs} Bs</span>
                         <div className="flex items-center gap-1 md:gap-2">
                             <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                             <span className="text-xs md:text-sm">{stats?.count_today || 0} ventas</span>
@@ -82,11 +85,11 @@ export function DashboardCards() {
                     <CardHeader className="pb-1 md:pb-2">
                         <CardDescription className="text-xs md:text-sm">Semana</CardDescription>
                         <CardTitle className="text-lg md:text-2xl font-semibold tabular-nums text-green-600">
-                            ${formatPrice(stats?.total_week || 0).usd}
+                            ${stats?.total_week_usd?.toFixed(2) || '0.00'}
+                            <span className="text-xs ml-1">({stats?.total_week_bs?.toFixed(2) || '0.00'} Bs)</span>
                         </CardTitle>
                     </CardHeader>
                     <div className="px-3 md:px-6 py-1 md:py-2 flex flex-col gap-0.5 md:gap-1 text-xs md:text-sm text-muted-foreground">
-                        <span className="text-xs">{formatPrice(stats?.total_week || 0).bs} Bs</span>
                         <div className="flex items-center gap-1 md:gap-2">
                             <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                             <span className="text-xs md:text-sm">{stats?.count_week || 0} ventas</span>
@@ -98,11 +101,11 @@ export function DashboardCards() {
                     <CardHeader className="pb-1 md:pb-2">
                         <CardDescription className="text-xs md:text-sm">Este Mes</CardDescription>
                         <CardTitle className="text-lg md:text-2xl font-semibold tabular-nums text-green-600">
-                            ${formatPrice(stats?.total_month || 0).usd}
+                            ${stats?.total_month_usd?.toFixed(2) || '0.00'}
+                            <span className="text-xs ml-1">({stats?.total_month_bs?.toFixed(2) || '0.00'} Bs)</span>
                         </CardTitle>
                     </CardHeader>
                     <div className="px-3 md:px-6 py-1 md:py-2 flex flex-col gap-0.5 md:gap-1 text-xs md:text-sm text-muted-foreground">
-                        <span className="text-xs">{formatPrice(stats?.total_month || 0).bs} Bs</span>
                         <div className="flex items-center gap-1 md:gap-2">
                             <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                             <span className="text-xs md:text-sm">{stats?.count_month || 0} ventas</span>
@@ -114,11 +117,11 @@ export function DashboardCards() {
                     <CardHeader className="pb-1 md:pb-2">
                         <CardDescription className="text-xs md:text-sm">Histórico</CardDescription>
                         <CardTitle className="text-lg md:text-2xl font-semibold tabular-nums text-green-600">
-                            ${formatPrice(stats?.total_all || 0).usd}
+                            ${stats?.total_all_usd?.toFixed(2) || '0.00'}
+                            <span className="text-xs ml-1">({stats?.total_all_bs?.toFixed(2) || '0.00'} Bs)</span>
                         </CardTitle>
                     </CardHeader>
                     <div className="px-3 md:px-6 py-1 md:py-2 flex flex-col gap-0.5 md:gap-1 text-xs md:text-sm text-muted-foreground">
-                        <span className="text-xs">{formatPrice(stats?.total_all || 0).bs} Bs</span>
                         <div className="flex items-center gap-1 md:gap-2">
                             <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
                             <span className="text-xs md:text-sm">Total</span>
@@ -138,9 +141,9 @@ export function DashboardCards() {
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="date" tick={{fontSize: 10}} />
                                 <YAxis tick={{fontSize: 10}} />
-                                <Tooltip formatter={(value) => {
-                                    const price = formatPrice(value as number)
-                                    return [`$${price.usd} (${price.bs} Bs)`, 'Ventas']
+                                <Tooltip formatter={(_, __, payload) => {
+                                    const p = payload?.payload || {}
+                                    return [`$${p.total_usd?.toFixed(2) || 0} (${p.total_bs?.toFixed(2) || 0} Bs)`, 'Ventas']
                                 }} />
                                 <Bar dataKey="total" fill="#22c55e" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -189,9 +192,8 @@ export function DashboardCards() {
                                 <th className="text-right p-2">Total</th>
                             </tr>
                         </thead>
-                            <tbody>
+                        <tbody>
                             {(stats?.top_products || []).map((product, index) => {
-                                const price = formatPrice(product.total_recaudado)
                                 return (
                                 <tr key={index} className="border-b hover:bg-accent">
                                     <td className="p-2 flex items-center gap-1 md:gap-2">
@@ -200,8 +202,8 @@ export function DashboardCards() {
                                     </td>
                                     <td className="p-2 text-right">{product.total_vendido}</td>
                                     <td className="p-2 text-right">
-                                        <span className="text-green-600 font-medium">${price.usd}</span>
-                                        <span className="text-muted-foreground text-xs ml-1 hidden md:inline">({price.bs} Bs)</span>
+                                        <span className="text-green-600 font-medium">${product.total_recaudado_usd?.toFixed(2)}</span>
+                                        <span className="text-muted-foreground text-xs ml-1 hidden md:inline">({product.total_recaudado_bs?.toFixed(2)} Bs)</span>
                                     </td>
                                 </tr>
                             )})}

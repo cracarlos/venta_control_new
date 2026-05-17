@@ -7,7 +7,6 @@ import { getSalesByFilter } from '@/services/salesServices'
 import type { Sale } from '@/types/sale'
 import { toast } from 'sonner'
 import { DollarSign, Calendar, FileDown, Loader2 } from 'lucide-react'
-import { useTasa } from '@/hooks/useTasa'
 
 interface SaleWithTotal extends Sale {
     sale_products?: { length: number }[]
@@ -20,7 +19,6 @@ export const SalesPage = () => {
     const [endDate, setEndDate] = useState('')
     const [currentParams, setCurrentParams] = useState('')
     const [exporting, setExporting] = useState(false)
-    const { formatPrice } = useTasa()
 
     useEffect(() => {
         loadSales('day')
@@ -90,7 +88,8 @@ export const SalesPage = () => {
         loadSales(undefined, startDate, endDate)
     }
 
-    const totalVentas = sales.reduce((sum, sale) => sum + parseFloat(sale.payment), 0)
+    const totalVentasUsd = sales.reduce((sum, sale) => sum + parseFloat(sale.payment || '0'), 0)
+    const totalVentasBs = sales.reduce((sum, sale) => sum + parseFloat(sale.bs_payment || '0'), 0)
 
     return (
         <div className="space-y-4">
@@ -153,9 +152,9 @@ export const SalesPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="text-lg font-semibold mb-4">
-                        Total: <span className="text-green-600">${formatPrice(totalVentas).usd}</span>
+                        Total: <span className="text-green-600">${totalVentasUsd.toFixed(2)}</span>
                         <span className="text-muted-foreground ml-1">
-                            ({formatPrice(totalVentas).bs} Bs)
+                            ({totalVentasBs.toFixed(2)} Bs)
                         </span>
                         <span className="text-muted-foreground ml-4">
                             ({sales.length} venta{sales.length !== 1 ? 's' : ''})
@@ -194,9 +193,9 @@ export const SalesPage = () => {
                                                 {sale.sale_products?.length || 0} producto{sale.sale_products?.length !== 1 ? 's' : ''}
                                             </td>
                                             <td className="p-2 text-right">
-                                                <span className="font-medium text-green-600">${formatPrice(sale.payment).usd}</span>
+                                                <span className="font-medium text-green-600">${parseFloat(sale.payment || '0').toFixed(2)}</span>
                                                 <span className="text-muted-foreground ml-1 text-xs">
-                                                    ({formatPrice(sale.payment).bs} Bs)
+                                                    ({parseFloat(sale.bs_payment || '0').toFixed(2)} Bs)
                                                 </span>
                                             </td>
                                         </tr>

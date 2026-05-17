@@ -4,7 +4,7 @@ import { getTasaDolar } from '@/services/tasaServices'
 interface TasaContextType {
     tasa: number | null
     loading: boolean
-    formatPrice: (priceInDollars: string | number) => { usd: string, bs: string }
+    formatPrice: (priceInDollars: string | number, isBs?: boolean) => { usd: string, bs: string }
 }
 
 const TasaContext = createContext<TasaContextType>({
@@ -33,8 +33,11 @@ export function TasaProvider({ children }: { children: ReactNode }) {
         loadTasa()
     }, [])
 
-    const formatPrice = (priceInDollars: string | number): { usd: string, bs: string } => {
+    const formatPrice = (priceInDollars: string | number, isBs = false): { usd: string, bs: string } => {
         const numPrice = typeof priceInDollars === 'string' ? parseFloat(priceInDollars) : priceInDollars
+        if (isBs) {
+            return { usd: '0.00', bs: numPrice.toFixed(2) }
+        }
         const usd = numPrice.toFixed(2)
         const bs = tasa ? (numPrice * tasa).toFixed(2) : '0.00'
         return { usd, bs }

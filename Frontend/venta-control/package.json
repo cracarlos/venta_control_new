@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder --mac",
-    "electron:build:win": "npm run build && electron-builder --win"
+    "electron:build:win": "npm run build && electron-builder --win --x64"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
@@ -79,8 +79,23 @@
       "icon": "src/assets/logo-iniciales.png"
     },
     "win": {
-      "target": "nsis",
-      "icon": "src/assets/logo-iniciales.png"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "src/assets/logo-iniciales.png",
+      "artifactName": "${productName} Setup ${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Venta Control",
+      "deleteAppDataOnUninstall": false
     },
     "linux": {
       "target": "AppImage"

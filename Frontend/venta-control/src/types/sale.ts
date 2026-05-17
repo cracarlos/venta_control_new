@@ -1,6 +1,7 @@
 export interface Sale {
     id: number,
     payment: string,
+    bs_payment?: string,
     sale_type?: { id: number, type: string } | null,
     user_creation: number,
     user_update: number | null,

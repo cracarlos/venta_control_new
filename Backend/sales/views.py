@@ -166,25 +166,29 @@ class SalesReportPdfView(APIView):
         
         elements.append(Spacer(1, 20))
         
-        data = [['ID', 'Fecha', 'Tipo', 'Total ($)', 'Productos']]
+        data = [['ID', 'Fecha', 'Tipo', 'Total ($)', 'Total (Bs)', 'Productos']]
         
-        total_general = 0
+        total_general_usd = 0
+        total_general_bs = 0
         for sale in sales:
-            payment_value = float(sale.payment)
-            total_general += payment_value
+            payment_usd = float(sale.payment)
+            payment_bs = float(sale.bs_payment) if sale.bs_payment else 0
+            total_general_usd += payment_usd
+            total_general_bs += payment_bs
             productos = sale.sale_products.count()
             sale_type = sale.sale_type.type if sale.sale_type else '-'
             data.append([
                 str(sale.id),
                 sale.created_at.strftime('%d/%m/%Y %H:%M'),
                 sale_type,
-                f"{payment_value:.2f}",
+                f"{payment_usd:.2f}",
+                f"{payment_bs:.2f}",
                 str(productos)
             ])
         
-        data.append(['', '', 'TOTAL', f"{total_general:.2f}", ''])
+        data.append(['', '', 'TOTAL', f"{total_general_usd:.2f}", f"{total_general_bs:.2f}", ''])
         
-        table = Table(data, colWidths=[50, 100, 80, 80, 80])
+        table = Table(data, colWidths=[40, 90, 60, 60, 70, 60])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -215,10 +219,15 @@ class DashboardStatsView(APIView):
         week_start = local_now - timedelta(days=local_now.weekday())
         month_start = local_now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
-        total_today = Sales.objects.filter(created_at__date=today_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
-        total_week = Sales.objects.filter(created_at__date__gte=week_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
-        total_month = Sales.objects.filter(created_at__date__gte=month_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
-        total_all = Sales.objects.aggregate(Sum('payment'))['payment__sum'] or 0
+        total_today_usd = Sales.objects.filter(created_at__date=today_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
+        total_week_usd = Sales.objects.filter(created_at__date__gte=week_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
+        total_month_usd = Sales.objects.filter(created_at__date__gte=month_start.date()).aggregate(Sum('payment'))['payment__sum'] or 0
+        total_all_usd = Sales.objects.aggregate(Sum('payment'))['payment__sum'] or 0
+        
+        total_today_bs = Sales.objects.filter(created_at__date=today_start.date()).aggregate(Sum('bs_payment'))['bs_payment__sum'] or 0
+        total_week_bs = Sales.objects.filter(created_at__date__gte=week_start.date()).aggregate(Sum('bs_payment'))['bs_payment__sum'] or 0
+        total_month_bs = Sales.objects.filter(created_at__date__gte=month_start.date()).aggregate(Sum('bs_payment'))['bs_payment__sum'] or 0
+        total_all_bs = Sales.objects.aggregate(Sum('bs_payment'))['bs_payment__sum'] or 0
         
         count_today = Sales.objects.filter(created_at__date=today_start.date()).count()
         count_week = Sales.objects.filter(created_at__date__gte=week_start.date()).count()
@@ -227,24 +236,34 @@ class DashboardStatsView(APIView):
         top_products = (
             Sale_products.objects
             .values('product__product_name')
-            .annotate(total_vendido=Sum('quantity'), total_recaudado=Sum(F('price') * F('quantity')))
+            .annotate(
+                total_vendido=Sum('quantity'),
+                total_recaudado_usd=Sum(F('price') * F('quantity')),
+                total_recaudado_bs=Sum(F('bs_price') * F('quantity'))
+            )
             .order_by('-total_vendido')[:5]
         )
         
         last_7_days = []
         for i in range(6, -1, -1):
             day = local_now - timedelta(days=i)
-            day_total = Sales.objects.filter(created_at__date=day.date()).aggregate(Sum('payment'))['payment__sum'] or 0
+            day_usd = Sales.objects.filter(created_at__date=day.date()).aggregate(Sum('payment'))['payment__sum'] or 0
+            day_bs = Sales.objects.filter(created_at__date=day.date()).aggregate(Sum('bs_payment'))['bs_payment__sum'] or 0
             last_7_days.append({
                 'date': day.strftime('%d/%m'),
-                'total': float(day_total)
+                'total_usd': float(day_usd),
+                'total_bs': float(day_bs)
             })
         
         return Response({
-            'total_today': float(total_today),
-            'total_week': float(total_week),
-            'total_month': float(total_month),
-            'total_all': float(total_all),
+            'total_today_usd': float(total_today_usd),
+            'total_week_usd': float(total_week_usd),
+            'total_month_usd': float(total_month_usd),
+            'total_all_usd': float(total_all_usd),
+            'total_today_bs': float(total_today_bs),
+            'total_week_bs': float(total_week_bs),
+            'total_month_bs': float(total_month_bs),
+            'total_all_bs': float(total_all_bs),
             'count_today': count_today,
             'count_week': count_week,
             'count_month': count_month,
