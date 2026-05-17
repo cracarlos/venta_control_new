@@ -46,7 +46,10 @@ class SalesManagerApiVIew(APIView):
             sale_type = None
             sale_type_id = data.get('sale_type_id')
             if sale_type_id:
-                sale_type = SalesType.objects.get(id=sale_type_id)
+                try:
+                    sale_type = SalesType.objects.get(id=sale_type_id)
+                except SalesType.DoesNotExist:
+                    pass
             
             resp = Sales.objects.create(
                 payment=payment_usd,

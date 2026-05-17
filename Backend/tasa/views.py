@@ -7,12 +7,18 @@ class TasaDolarView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        tasa = get_tasa_dolar()
+        try:
+            tasa = get_tasa_dolar()
+        except Exception:
+            tasa = {"valor": 0, "estatus": False}
         return Response(tasa)
 
 class TasaEuroView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        tasa = get_tasa_euro()
+        try:
+            tasa = get_tasa_euro()
+        except Exception:
+            tasa = {"valor": 0, "estatus": False}
         return Response(tasa)

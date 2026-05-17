@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/v1/password/', include('users.urls')),
     path('api/v1/tasa/dolar/', TasaDolarView.as_view(), name='tasa-dolar'),
     path('api/v1/tasa/euro/', TasaEuroView.as_view(), name='tasa-euro'),
+    path('api/v1/system/', include('system.urls')),
     
     #login browsable
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),

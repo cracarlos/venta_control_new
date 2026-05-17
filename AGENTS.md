@@ -1,158 +1,125 @@
-# AGENTS.md - Venta Control Development Guide
+# AGENTS.md - Venta Control
 
-Full-stack app with **Django REST Framework backend** + **React + TypeScript frontend** (Vite).
+Respondeme siempre en español.
 
----
-
-## 1. Project Structure
-
-```
-/Backend/               # Django REST API
-  manage.py           # Django management script
-  requirements.txt    # Python dependencies
-  venta_control/     # Django project settings
-  core/, users/, products/, sales/, my_auth/  # Django apps
-
-/Frontend/venta-control/  # React + TypeScript + Vite
-  src/
-    api/            # Axios API client
-    components/    # React components (UI + feature)
-    hooks/         # Custom React hooks
-    lib/           # Utilities (utils.ts)
-    pages/         # Page components
-    routes/        # Router configuration
-    services/      # API service functions
-    store/         # Redux store (auth, users, UI slices)
-    types/         # TypeScript type definitions
-```
+Full-stack app: **Django REST Framework** (PostgreSQL) + **React + TypeScript** (Vite + Electron).
 
 ---
 
-## 2. Build / Lint / Test Commands
+## Proyecto
+
+- `Backend/` — Django 5.2, DRF 3.16, JWT (`djangorestframework_simplejwt`)
+  - Apps: `core/` (BaseModel), `users/` (User personalizado), `products/`, `sales/`, `my_auth/` (login JWT personalizado), `tasa/` (tasas BCV vía Firebase)
+- `Frontend/venta-control/` — React 19, Vite 7, SWC, TailwindCSS v4, shadcn/ui
+  - También es app **Electron** (ver `electron/main.cjs`)
+
+---
+
+## Comandos
 
 ### Backend (Django)
 
 ```bash
 cd Backend && source .venv/bin/activate
-
-python manage.py runserver          # Run development server
-python manage.py test               # Run all tests
-python manage.py test users         # Run tests for specific app
-python manage.py test users.tests.tests_views  # Run specific test file
-python manage.py makemigrations     # Create migrations
-python manage.py migrate            # Apply migrations
-python manage.py check              # Check for issues
+python manage.py runserver
+python manage.py test                      # todos los tests
+python manage.py test users.tests.tests_views  # archivo específico
+python manage.py makemigrations && python manage.py migrate
+python manage.py check
 ```
 
-### Frontend (React + TypeScript + Vite)
+Base de datos: **SQLite por defecto** (local). **PostgreSQL** opcional configurando `DB_ENGINE=postgresql` en `.env`.
+
+### Frontend (React + Vite + Electron)
 
 ```bash
 cd Frontend/venta-control
+npm install
+npm run dev                                # Vite dev server
+npm run build                              # tsc -b && vite build (typecheck + build)
+npm run lint                               # ESLint
+npm run build:backend                      # PyInstaller → ejecutable backend en Backend/dist/
+npm run electron:dev                       # Vite + Electron dev (backend corre aparte)
+npm run electron:build                     # build:backend + build + empaquetado .dmg (macOS)
+npm run electron:build:win                 # build:backend + build + empaquetado .exe (Windows)
+```
 
-npm install        # Install dependencies
-npm run dev        # Run development server
-npm run build      # Build for production
-npm run lint       # Lint code
-npm run preview    # Preview production build
+`npm run build` **siempre falla** si hay errores de TypeScript (`tsc -b` primero).
+
+---
+
+## Backend — particularidades
+
+- **SQLite por defecto**, PostgreSQL opcional — el `settings.py` detecta `DB_ENGINE=postgresql` para usar PostgreSQL o `DB_ENGINE=sqlite` (o sin variable) para SQLite local. En modo empaquetado (Electron) siempre usa SQLite.
+- **User model**: `users.User` (AbstractBaseUser), autentica por `email`.
+- **JWT login** devuelve campos extra: `full_name`, `user_id`, `password_update`, `group_name`, `group_id`, `permissions[]` (ver `my_auth/serializers.py:MyTokenSerializer`).
+- **BaseModel** en `core/models.py` — clase abstracta con `user_creation`, `user_update`, `created_at`, `updated_at`. Los modelos de negocio heredan de esta.
+- **`crum` middleware** activo en settings (`CurrentRequestUserMiddleware`) pero **NO** está en `requirements.txt`. Usado en `products/models.py` para auto-asignar usuario en saves.
+- **Firebase** para tasas BCV: `tasa/firebase.py` lee desde Firestore (`monedas/dolar`, `monedas/euro`). Endpoints públicos (`AllowAny`) en `api/v1/tasa/dolar/` y `api/v1/tasa/euro/`.
+- **Reportes PDF** con ReportLab en `sales/views.py:SalesReportPdfView`.
+- **Swagger** en `/api/docs/`, schema en `/api/schema/`.
+- **Filtros** vía `django-filter`.
+- **Locale**: `es-ve`, timezone `America/Caracas`.
+- **API base**: `localhost:8000/api/v1/`.
+
+### Endpoints clave
+
+| Ruta | Descripción |
+|---|---|
+| `POST auth/login/` | Login JWT (devuelve access, refresh + user data) |
+| `POST auth/logout/` | Blacklist refresh token |
+| `GET/POST api/v1/users/` | CRUD usuarios (ViewSet) |
+| `GET/POST api/v1/products/` | CRUD productos (ViewSet) |
+| `GET/POST api/v1/sales/` | Ventas (APIView) — POST crea venta + descuenta stock |
+| `GET api/v1/sales/dashboard/` | Estadísticas del dashboard |
+| `GET api/v1/sales/report/pdf/` | PDF de reporte |
+| `GET api/v1/tasa/dolar/` | Tasa BCV dólar (AllowAny) |
+| `GET api/v1/tasa/euro/` | Tasa BCV euro (AllowAny) |
+
+### Ojo: el endpoint `POST api/v1/sales/` tiene código muerto (líneas 86-116 inalcanzables tras el return en 81).
+
+### Base de datos local (SQLite)
+
+En modo empaquetado (Electron + PyInstaller):
+- La BD se guarda en `app.getPath('userData')` → `~/Library/Application Support/Venta Control/venta-control.db`
+- El backend se inicia automáticamente como `child_process` desde Electron
+- Al cerrar la app, el backend se detiene (SIGTERM)
+- Usuario por defecto: `admin@admin.com` / `admin`
+- Backup/restore desde la UI en `/settings` (exporta/importa el archivo .db)
+
+En desarrollo local con SQLite:
+```bash
+DB_ENGINE=sqlite python manage.py runserver
 ```
 
 ---
 
-## 3. Code Style Guidelines
+## Frontend — particularidades
 
-### Frontend (TypeScript + React)
+- **Electron**: usa `HashRouter` (no BrowserRouter) y `base: './'` en vite.config porque Electron carga desde `file://`.
+- **En producción, Electron lanza el backend** (`process.resourcesPath + '/backend/venta-control-backend'`) como `child_process` con `DB_PATH` apuntando a `userData`.
+- **Electron** tiene `webSecurity: false` (llama a API localhost).
+- **TypeScript strict**: `noUnusedLocals: true`, `noUnusedParameters: true`, `verbatimModuleSyntax: true` — importaciones de tipos requieren `import type`.
+- **API client**: Axios con base URL hardcodeada `http://localhost:8000/api/v1/`. Token se inyecta desde `localStorage` via interceptor.
+- **Redux Toolkit + redux-persist**: estado `auth` persiste en localStorage. Slice en `store/Auth/authSlice.ts`.
+- **Store slices**: `auth`, `ui`, `user`, `product` — combinados en `store/rootReducer.tsx`.
+- **shadcn/ui**: new-york style, slate base, CSS variables. Iconos con lucide-react.
+- **`cn()`** de `@/lib/utils` para merge de clases Tailwind.
+- **Notificaciones** con `sonner`.
+- **Formularios** con `react-hook-form`.
+- **Gráficos** con `recharts`.
 
-#### Imports
-- Use absolute imports with `@/` prefix
-- Order: external libs → internal modules → local components
-  ```typescript
-  import { useState } from 'react'
-  import { useNavigate } from 'react-router'
-  import api from '@/api/Api'
-  import { type AuthLogin } from '@/types/auth'
-  import { useAuthStore } from '@/hooks/useAuthStore'
-  import { Button } from '@/components/ui/button'
-  ```
+### Convenciones de código
 
-#### Naming
-- **Files**: PascalCase (components), camelCase (hooks, services)
-- **Components**: PascalCase (`AuthPage`)
-- **Hooks**: `use` prefix (`useAuthStore`)
-- **Types/Interfaces**: PascalCase with type suffix (`interface AuthState`)
-
-#### Types
-- Avoid `any` - use strict typing
-- Define types in `/src/types/`
-- Use `type` for unions, `interface` for objects
-
-#### Error Handling
-```typescript
-try {
-  const resp = await api.post<AuthApi>('auth/login/', authDate)
-  return resp.data
-} catch (error: any) {
-  if (error.response) throw error.response.data
-  throw new Error("Error de red o servidor no disponible")
-}
-```
-
-#### State Management
-- Use Redux Toolkit with slices in `/src/store/[Feature]/[featureSlice].ts`
-- Export selectors with `select` prefix
-
-#### UI Components
-- Use shadcn/ui patterns with `cva` for variants
-- Use `cn()` from `@/lib/utils` for class merging
-
-#### Formatting
-- 2 spaces indentation, no semicolons, single quotes, trailing commas
+- Nombres: PascalCase para componentes, camelCase para hooks/servicios.
+- Hooks con prefijo `use`.
+- Tipos en `src/types/`, interfaces con `interface`, uniones con `type`.
+- Import alias `@/` mapea a `src/`.
 
 ---
 
-### Backend (Django)
+## Estado del repo
 
-#### Python
-- PEP 8, 4 spaces indentation
-- Descriptive variable names (English or Spanish)
-
-#### Models (models.py)
-```python
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=30)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-```
-
-#### Tests
-```python
-class UsersIntegrataionsTests(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create(email="test@example.com", ...)
-        self.client.force_authenticate(user=self.user)
-
-    def test_get_list_users(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
----
-
-## 4. API Endpoints
-
-Backend: `http://localhost:8000/api/v1/`
-- `POST auth/login/` - Login
-- `POST auth/logout/` - Logout
-- `GET/POST users/` - User CRUD
-- `GET/POST products/` - Product management
-- `GET/POST sales/` - Sales management
-
----
-
-## 5. Notes
-
-- Frontend: **TailwindCSS v4** + `@tailwindcss/vite`
-- Backend: **JWT** via `djangorestframework_simplejwt`
-- Venezuelan context: uses `cedula_rif` for identification
-- No existing Cursor/Copilot rules found
+- README dice "En desarrollo".
+- No hay CI/CD, no hay pre-commit hooks, no hay configuración OpenCode/Cursor.
+- `.env` está versionado (incluye Firebase credenciales reales).
