@@ -8,6 +8,7 @@ import { POSPage } from "@/pages/POSPage";
 import { ProductsPage } from "@/pages/ProductsPage";
 import { RolesPage } from "@/pages/RolesPage";
 import { SalesPage } from "@/pages/SalesPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { HashRouter, Routes, Route, Navigate } from "react-router";
 
@@ -31,6 +32,7 @@ export const RoutesApp = () => {
             <Route path="users" element={<UsersPage />} />
             <Route path="roles" element={<RolesPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
 

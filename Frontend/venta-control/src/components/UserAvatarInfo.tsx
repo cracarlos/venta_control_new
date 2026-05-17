@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { EllipsisVertical, LogOut, Settings, UserRound } from "lucide-react"
+import { EllipsisVertical, LogOut, Settings } from "lucide-react"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar"
 import { useAuthStore } from "@/hooks/useAuthStore";
 
@@ -77,11 +77,7 @@ export function UserAvatarInfo() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserRound />
-                Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
                 <Settings />
                 Configuraciones
               </DropdownMenuItem>

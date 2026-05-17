@@ -14,6 +14,7 @@ const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/products": ["superuser", "view_products", "add_product", "change_product", "delete_product"],
   "/users": ["superuser", "view_user", "add_user", "change_user", "delete_user"],
   "/roles": ["superuser", "view_group", "add_group", "change_group", "delete_group"],
+  "/settings": ["superuser", "dashboard", "view_sales", "view_products", "view_user"],
 };
 
 export const ProtectedRoute = () => {

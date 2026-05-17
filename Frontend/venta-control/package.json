@@ -12,11 +12,14 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder --mac",
-    "electron:build:win": "npm run build && electron-builder --win --x64"
+    "build:backend": "cd ../../Backend && source .venv/bin/activate && pyinstaller backend.spec --clean",
+    "build:backend:win": "cd /d ..\\..\\Backend && .venv\\Scripts\\python.exe -m PyInstaller backend.spec --clean",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && NODE_ENV=development electron .\"",
+    "electron:build": "npm run build:backend && npm run build && electron-builder --mac",
+    "electron:build:win": "npm run build:backend:win && npm run build && electron-builder --win --x64"
   },
   "dependencies": {
+    "@fontsource-variable/geist": "^5.2.9",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.5",
@@ -70,7 +73,14 @@
       {
         "from": "src/assets",
         "to": "app/dist/assets",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../Backend/dist",
+        "to": "backend",
+        "filter": ["venta-control-backend*"]
       }
     ],
     "mac": {
@@ -82,7 +92,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "src/assets/logo-iniciales.png",

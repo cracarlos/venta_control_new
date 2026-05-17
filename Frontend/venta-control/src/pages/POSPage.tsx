@@ -139,9 +139,9 @@ export const POSPage = () => {
             setCart([])
             setPaymentType(null)
             loadData()
-        } catch (error) {
-            const err = error as { detail?: string }
-            toast.error(err.detail || 'Error al registrar venta')
+        } catch (error: any) {
+            const msg = error?.error || error?.detail || 'Error al registrar la venta'
+            toast.error(msg)
         }
     }
 

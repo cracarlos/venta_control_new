@@ -11,23 +11,25 @@ import {
 } from "@/components/ui/sidebar"
 import { UserAvatarInfo} from '@/components/UserAvatarInfo';
 import { useAuthStore } from "@/hooks/useAuthStore";
-import { Barcode, DollarSign, LayoutDashboard, NotebookTabs, Receipt, Shield, Users } from "lucide-react";
+import { Barcode, DollarSign, LayoutDashboard, NotebookTabs, Receipt, Settings, Shield, Users } from "lucide-react";
 import { Link } from "react-router";
 
 export function AppSidebar() {
   const { permissions } = useAuthStore();
   return (
-    <Sidebar>
-      <SidebarHeader>
+    <Sidebar className="border-r-0">
+      <SidebarHeader className="border-b border-sidebar-border/50 pb-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-2"
             >
               <a href="#">
-                <NotebookTabs />
-                <span className="text-base font-semibold">Venta Control</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm">
+                  <NotebookTabs className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-base font-semibold tracking-tight">Venta Control</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -143,9 +145,21 @@ export function AppSidebar() {
             </SidebarGroup>
           ) : null
         }
-        <SidebarGroup />
+        <SidebarGroup>
+          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem key="settings">
+              <SidebarMenuButton asChild>
+                <Link to={"/settings"}>
+                  <Settings />
+                  <span>Configuración</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border/50">
         <UserAvatarInfo />
       </SidebarFooter>
     </Sidebar>
